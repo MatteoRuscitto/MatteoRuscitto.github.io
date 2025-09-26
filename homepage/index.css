@@ -1,0 +1,50 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    grid-template-areas: 
+        "sinistra destra";
+    grid-gap: 20px;
+    height: 100vh;
+}
+
+#sinistra {
+    grid-area: left;
+    background-color: rgb(31, 205, 244);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 20%;
+}
+#destra {
+    grid-area: right;
+}
+
+#destra img {
+    width: 100%;
+    height: auto;
+    border-radius: 20%;
+}
+
+#sinistra {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+}
+
+#sinistra a {
+    color: white;
+    background-color: rgb(5, 31, 224);
+    border-radius: 20%;
+}
+
+h1 {
+    color: white;
+}
