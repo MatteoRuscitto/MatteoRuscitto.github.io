@@ -1,0 +1,53 @@
+html, body {
+    margin: 0%;
+    padding: 0;
+    height: 100%;
+    }
+
+main {
+    background-color: white;
+    display: grid;
+    grid-template-columns: repeat(5,1fr);
+    grid-template-rows: repeat(4,1fr);
+    grid-template-areas: 
+    "lu lu lu lu ru"
+    "lu lu lu lu ru"
+    "ld cd cd cd rd"
+    "ld cd cd cd rd";
+    gap: 10px;
+}
+
+#leftup {
+    grid-area: lu;
+    background-color: lightblue;
+    border-radius: 20%;
+    padding: 2rem;
+}
+
+#leftdown {
+    grid-area: ld;
+    background-color: rgb(7, 149, 196);
+    border-radius: 20%;
+    padding: 2rem;
+}
+
+#rightup{
+    grid-area: ru;
+    background-color: lightblue;
+    border-radius: 20%;
+    padding: 2rem;
+}
+
+#rightdown{
+    grid-area: rd;
+    background-color: lightblue;
+    border-radius: 20%;
+    padding: 2rem;
+}
+
+#centerdown{
+    grid-area: cd;
+    background-color: lightblue;
+    border-radius: 20%;
+    padding: 2rem;
+}
