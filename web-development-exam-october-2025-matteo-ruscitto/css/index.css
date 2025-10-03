@@ -1,0 +1,52 @@
+main {
+    height: 100%;
+    width: auto;
+    display:grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 2fr auto 1fr;
+}
+#navbar{
+    background-color: black;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border: 1px gray;
+}
+#tegneserier{
+    background-color: lightgrey;
+    text-align: center;
+    border: 1px gray;
+}
+#comics{
+    display: flex;
+    flex-wrap: wrap;
+    background-color: white;
+    border: 1px gray;
+}
+#endbar{
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px gray;
+}
+
+.fumetto{
+    height: auto;
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.fumetto img{
+    border-radius: 5%;
+}
+#navbar p {
+    color: white;
+}
+#navbar a {
+    color: white;
+}
+#endbar p {
+    color: white;
+}

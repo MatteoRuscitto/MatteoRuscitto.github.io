@@ -1,0 +1,54 @@
+main {
+    height: 100%;
+    width: auto;
+    display:grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+}
+#navbar{
+    background-color: black;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border: 1px gray;
+}
+#content{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    border: 1px gray;
+}
+furtherinfo{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
+    border: 1px gray;
+}
+#spiderman{
+    background-color: lightpink;
+}
+#spiderman img{
+    border-radius: 5%;
+}
+#spidermanpicture{
+    background-color: rgb(231, 228, 228);
+    height: fit-content;
+    border: 1px gray;
+}
+spidermanpicture img{
+    border-radius: 5%;
+}
+#spidermanpicture p{
+    color: gray;
+}
+.moreinfo{
+    background-color: rgb(231, 228, 228);
+    border-radius: 5%;
+    border: 1px gray;
+}
+#navbar p {
+    color: white;
+}
+#navbar a {
+    color: white;
+}
