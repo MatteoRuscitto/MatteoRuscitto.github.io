@@ -1,0 +1,26 @@
+html,body{
+    height:100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+}
+#dices{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+img{
+    border-radius: 10%;
+    max-width: 200px;
+    
+}
+#throw {
+    color: red;
+}

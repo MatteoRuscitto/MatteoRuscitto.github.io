@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Consegna di Babbo Natale</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&family=Roboto:wght@400;700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0F172A; /* Blu notte scuro */
+            font-family: 'Roboto', sans-serif;
+            touch-action: manipulation; /* Migliora risposta al tocco su mobile */
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* UI Overlay */
+        #uiLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none; /* Lascia passare i click al canvas */
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .score-box {
+            font-family: 'Mountains of Christmas', cursive;
+            font-size: 2.5rem;
+        }
+
+        .lives-box {
+            font-size: 2rem;
+        }
+
+        .heart {
+            color: #ef4444;
+            display: inline-block;
+        }
+
+        .lost-heart {
+            color: #555;
+            display: inline-block;
+        }
+
+        /* Schermate Menu / Game Over */
+        #menuOverlay, #gameOverOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+            backdrop-filter: blur(4px);
+        }
+
+        h1 {
+            font-family: 'Mountains of Christmas', cursive;
+            font-size: 4rem;
+            margin: 0 0 20px 0;
+            color: #f87171;
+            text-align: center;
+            line-height: 1;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-family: 'Mountains of Christmas', cursive;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+            transition: transform 0.1s, background 0.2s;
+            pointer-events: auto;
+        }
+
+        button:hover {
+            background: #ef4444;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Animazione per i feedback +1 o Miss */
+        .feedback {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.5rem;
+            pointer-events: none;
+            animation: floatUp 1s forwards;
+            font-family: 'Mountains of Christmas', cursive;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Interfaccia Utente (Punteggio e Vite) -->
+    <div id="uiLayer">
+        <div class="score-box">Punti: <span id="scoreVal">0</span></div>
+        <div class="lives-box" id="livesContainer">
+            <span class="heart">❤</span>
+            <span class="heart">❤</span>
+            <span class="heart">❤</span>
+            <span class="heart">❤</span>
+            <span class="heart">❤</span>
+        </div>
+    </div>
+
+    <!-- Schermata Iniziale -->
+    <div id="menuOverlay">
+        <h1>Consegna di Natale</h1>
+        <p>Aiuta Babbo Natale a consegnare i regali nei comignoli!<br>
+        Premi <strong>SPAZIO</strong> o tocca lo schermo per lanciare il regalo.<br>
+        Attenzione: La slitta andrà sempre più veloce!</p>
+        <button id="startBtn">Inizia a Giocare</button>
+    </div>
+
+    <!-- Schermata Game Over -->
+    <div id="gameOverOverlay" class="hidden">
+        <h1>Oh no!</h1>
+        <p>Babbo Natale ha finito i regali o ha mancato troppe case.</p>
+        <p class="score-box">Punteggio Finale: <span id="finalScore">0</span></p>
+        <button id="restartBtn">Riprova</button>
+    </div>
+</div>
+
+<script>
+    /**
+     * CONFIGURAZIONE E VARIABILI GLOBALI
+     */
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // UI Elements
+    const scoreEl = document.getElementById('scoreVal');
+    const livesContainer = document.getElementById('livesContainer');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const finalScoreEl = document.getElementById('finalScore');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const gameContainer = document.getElementById('gameContainer');
+
+    // Game State
+    let isPlaying = false;
+    let score = 0;
+    let lives = 5;
+    let frameCount = 0;
+    let gameSpeed = 3; // Velocità iniziale pixel/frame
+    let groundHeight = 100;
+
+    // Entità
+    let santa = {
+        x: 100, // Posizione fissa X
+        y: 100, // Posizione base Y
+        width: 100,
+        height: 60,
+        bobOffset: 0 // Per l'animazione oscillante
+    };
+    
+    let presents = [];
+    let houses = [];
+    let particles = []; // Per la neve
+    
+    // Configurazione Generazione
+    const MIN_HOUSE_GAP = 200;
+    const MAX_HOUSE_GAP = 400;
+
+    /**
+     * GESTIONE DIMENSIONI E INPUT
+     */
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        groundHeight = canvas.height * 0.15; // Il pavimento occupa il 15% inferiore
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Input Controller
+    function handleInput(e) {
+        if (!isPlaying) return;
+        
+        // Evita comportamento default (scroll pagina con spazio)
+        if (e.type === 'keydown' && e.code === 'Space') {
+            e.preventDefault();
+        }
+
+        if ((e.type === 'keydown' && e.code === 'Space') || e.type === 'touchstart' || e.type === 'mousedown') {
+            dropPresent();
+        }
+    }
+
+    window.addEventListener('keydown', handleInput);
+    canvas.addEventListener('touchstart', handleInput, {passive: false});
+    canvas.addEventListener('mousedown', handleInput);
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', startGame);
+
+    /**
+     * LOGICA DI GIOCO
+     */
+    function startGame() {
+        score = 0;
+        lives = 5;
+        gameSpeed = 3;
+        frameCount = 0;
+        presents = [];
+        houses = [];
+        particles = [];
+        isPlaying = true;
+
+        updateUI();
+        
+        // Nascondi overlay
+        menuOverlay.classList.add('hidden');
+        gameOverOverlay.classList.add('hidden');
+
+        // Genera un po' di neve iniziale
+        for(let i=0; i<50; i++) {
+            particles.push(createSnowflake(true));
+        }
+
+        // Genera prime case
+        spawnHouse(canvas.width + 100);
+
+        gameLoop();
+    }
+
+    function gameOver() {
+        isPlaying = false;
+        finalScoreEl.innerText = score;
+        gameOverOverlay.classList.remove('hidden');
+    }
+
+    function updateUI() {
+        scoreEl.innerText = score;
+        
+        // Genera i cuori
+        let html = '';
+        for (let i = 0; i < 5; i++) {
+            if (i < lives) {
+                html += '<span class="heart">❤</span>';
+            } else {
+                html += '<span class="lost-heart">❤</span>';
+            }
+        }
+        livesContainer.innerHTML = html;
+    }
+
+    function showFeedback(x, y, text, color) {
+        const el = document.createElement('div');
+        el.className = 'feedback';
+        el.innerText = text;
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+        el.style.color = color;
+        gameContainer.appendChild(el);
+        
+        // Rimuovi elemento dopo l'animazione
+        setTimeout(() => el.remove(), 1000);
+    }
+
+    function dropPresent() {
+        // Limite rateo di fuoco (opzionale, per evitare spam eccessivo)
+        if (presents.length > 0) {
+            const lastP = presents[presents.length - 1];
+            if (lastP.y < santa.y + 50) return; // Aspetta che il precedente scenda un po'
+        }
+
+        presents.push({
+            x: santa.x + 40, // Esce da sotto la slitta
+            y: santa.y + 40,
+            width: 20,
+            height: 20,
+            vy: 2, // Velocità verticale iniziale
+            active: true
+        });
+    }
+
+    function createSnowflake(randomY = false) {
+        return {
+            x: Math.random() * canvas.width,
+            y: randomY ? Math.random() * canvas.height : -10,
+            size: Math.random() * 3 + 1,
+            speed: Math.random() * 2 + 1
+        };
+    }
+
+    function spawnHouse(startX) {
+        // Dimensioni casa casuali
+        const w = 100 + Math.random() * 80;
+        const h = 100 + Math.random() * 150;
+        
+        // Colori casa
+        const colors = ['#5D4037', '#795548', '#4E342E', '#3E2723', '#6D4C41'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        // Comignolo
+        const chimneyW = 30;
+        const chimneyH = 25;
+        // Posiziona il comignolo randomicamente sul tetto
+        const chimneyXOffset = 10 + Math.random() * (w - chimneyW - 20);
+
+        houses.push({
+            x: startX,
+            y: canvas.height - groundHeight - h, // Base sul pavimento
+            w: w,
+            h: h,
+            color: color,
+            chimney: {
+                xOffset: chimneyXOffset,
+                w: chimneyW,
+                h: chimneyH
+            },
+            windows: generateWindows(w, h)
+        });
+    }
+
+    function generateWindows(houseW, houseH) {
+        let wins = [];
+        const rows = Math.floor(houseH / 50);
+        const cols = Math.floor(houseW / 40);
+        
+        for(let r=0; r<rows; r++) {
+            for(let c=0; c<cols; c++) {
+                if(Math.random() > 0.3) { // 70% chance di avere una finestra qui
+                    wins.push({
+                        x: 10 + c * 35,
+                        y: 20 + r * 45,
+                        w: 20,
+                        h: 30,
+                        light: Math.random() > 0.5 // Alcune luci accese, altre spente
+                    });
+                }
+            }
+        }
+        return wins;
+    }
+
+    /**
+     * UPDATE LOOP
+     */
+    function update() {
+        frameCount++;
+
+        // Aumenta difficoltà nel tempo
+        if (frameCount % 150 === 0) { // Ogni ~2,5 secondi
+            gameSpeed += 0.5;
+        }
+
+        // --- Aggiorna Babbo Natale ---
+        // Oscillazione sinusoidale
+        santa.bobOffset = Math.sin(frameCount * 0.05) * 10;
+
+        // --- Aggiorna Neve ---
+        if (frameCount % 5 === 0) particles.push(createSnowflake());
+        for (let i = 0; i < particles.length; i++) {
+            let p = particles[i];
+            p.y += p.speed;
+            p.x -= gameSpeed * 0.2; // Parallasse leggero
+            if (p.y > canvas.height) {
+                particles.splice(i, 1);
+                i--;
+            }
+        }
+
+        // --- Aggiorna Case ---
+        // Sposta case a sinistra
+        for (let i = 0; i < houses.length; i++) {
+            houses[i].x -= gameSpeed;
+            
+            // Rimuovi se fuori schermo
+            if (houses[i].x + houses[i].w < -50) {
+                houses.splice(i, 1);
+                i--;
+            }
+        }
+
+        // Genera nuova casa se necessario
+        const lastHouse = houses[houses.length - 1];
+        if (!lastHouse || (canvas.width - (lastHouse.x + lastHouse.w)) > (MIN_HOUSE_GAP + Math.random() * (MAX_HOUSE_GAP - MIN_HOUSE_GAP))) {
+            spawnHouse(canvas.width);
+        }
+
+        // --- Aggiorna Regali ---
+        const gravity = 0.5;
+        for (let i = 0; i < presents.length; i++) {
+            let p = presents[i];
+            
+            // Fisica
+            p.vy += gravity;
+            p.y += p.vy;
+            p.x -= gameSpeed * 0.1; // Il regalo mantiene un po' di inerzia ma rallenta rispetto al mondo
+
+            // Controllo Collisioni
+            if (p.active) {
+                // 1. Ha toccato terra o tetto?
+                const groundY = canvas.height - groundHeight;
+                
+                // Controlla collisione con ogni casa
+                let hitHouse = false;
+                
+                for (let h of houses) {
+                    // Coordinate assolute del comignolo
+                    const chimLeft = h.x + h.chimney.xOffset;
+                    const chimRight = chimLeft + h.chimney.w;
+                    const chimTop = h.y - h.chimney.h;
+                    
+                    // Controlla se il regalo entra nel comignolo
+                    // Deve essere all'altezza giusta e dentro la X del comignolo
+                    if (p.y + p.height >= chimTop && p.y < chimTop + 20 && 
+                        p.x + p.width > chimLeft && p.x < chimRight) {
+                        
+                        // SUCCESSO!
+                        score++;
+                        showFeedback(p.x, p.y - 50, "+1", "#4ade80"); // Verde
+                        p.active = false; // "Assorbi" il regalo
+                        updateUI();
+                        hitHouse = true;
+                        break;
+                    } 
+                    // Controlla collisione col resto del tetto (FALLIMENTO)
+                    else if (p.y + p.height >= h.y && 
+                             p.x + p.width > h.x && p.x < h.x + h.w) {
+                        
+                        lives--;
+                        showFeedback(p.x, p.y - 50, "Mancato!", "#f87171"); // Rosso
+                        p.active = false;
+                        updateUI();
+                        hitHouse = true;
+                        if (lives <= 0) gameOver();
+                        break;
+                    }
+                }
+
+                // Se non ha colpito una casa, controlla il pavimento
+                if (!hitHouse && p.active && p.y + p.height >= groundY) {
+                    lives--;
+                    showFeedback(p.x, p.y - 50, "Mancato!", "#f87171");
+                    p.active = false;
+                    updateUI();
+                    if (lives <= 0) gameOver();
+                }
+            }
+
+            // Rimuovi se fuori dallo schermo in basso
+            if (p.y > canvas.height) {
+                presents.splice(i, 1);
+                i--;
+            }
+        }
+    }
+
+    /**
+     * RENDER LOOP
+     */
+    function draw() {
+        // Pulisci schermo
+        ctx.fillStyle = '#0F172A';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Disegna Luna
+        ctx.fillStyle = '#FEF3C7';
+        ctx.shadowBlur = 50;
+        ctx.shadowColor = '#FEF3C7';
+        ctx.beginPath();
+        ctx.arc(canvas.width - 100, 100, 40, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Disegna Neve (Background)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        for (let p of particles) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Disegna Case
+        for (let h of houses) {
+            // Corpo casa
+            ctx.fillStyle = h.color;
+            ctx.fillRect(h.x, h.y, h.w, h.h);
+
+            // Tetto (triangolo opzionale o neve sopra)
+            ctx.fillStyle = '#EEE'; // Neve sul tetto
+            ctx.fillRect(h.x - 5, h.y, h.w + 10, 10);
+
+            // Comignolo
+            const chimX = h.x + h.chimney.xOffset;
+            const chimY = h.y - h.chimney.h;
+            ctx.fillStyle = '#8D230F'; // Mattoni scuri
+            ctx.fillRect(chimX, chimY, h.chimney.w, h.chimney.h);
+            
+            // Top comignolo (neve)
+            ctx.fillStyle = '#333'; // Buco nero
+            ctx.fillRect(chimX + 2, chimY, h.chimney.w - 4, 5);
+
+            // Finestre
+            for(let win of h.windows) {
+                ctx.fillStyle = win.light ? '#FCD34D' : '#3c2f2f'; // Giallo luce o spento
+                ctx.fillRect(h.x + win.x, h.y + win.y, win.w, win.h);
+            }
+        }
+
+        // Disegna Pavimento
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+        // Bordo innevato
+        ctx.fillStyle = '#F1F5F9';
+        ctx.fillRect(0, canvas.height - groundHeight, canvas.width, 10);
+
+        // Disegna Regali
+        for (let p of presents) {
+            if (p.active) {
+                // Pacco
+                ctx.fillStyle = '#16A34A'; // Verde
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+                // Nastro
+                ctx.fillStyle = '#DC2626'; // Rosso
+                ctx.fillRect(p.x + p.width/2 - 2, p.y, 4, p.height);
+                ctx.fillRect(p.x, p.y + p.height/2 - 2, p.width, 4);
+            }
+        }
+
+        // Disegna Babbo Natale e Slitta
+        drawSanta(santa.x, santa.y + santa.bobOffset);
+    }
+
+    function drawSanta(x, y) {
+        ctx.save();
+        ctx.translate(x, y);
+
+        // Slitta (Corpo)
+        ctx.fillStyle = '#991B1B'; // Rosso scuro
+        ctx.beginPath();
+        ctx.moveTo(0, 30);
+        ctx.bezierCurveTo(0, 50, 20, 50, 60, 50); // Fondo curvo
+        ctx.lineTo(80, 40);
+        ctx.lineTo(80, 20);
+        ctx.lineTo(0, 30);
+        ctx.fill();
+
+        // Pattini slitta
+        ctx.strokeStyle = '#D4AF37'; // Oro
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-10, 55);
+        ctx.lineTo(70, 55);
+        ctx.bezierCurveTo(90, 55, 90, 45, 80, 40);
+        ctx.stroke();
+
+        // Babbo Natale (Testa/Corpo semplice)
+        ctx.fillStyle = '#EF4444'; // Vestito
+        ctx.beginPath();
+        ctx.arc(40, 25, 15, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#FCA5A5'; // Faccia
+        ctx.beginPath();
+        ctx.arc(45, 20, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = 'white'; // Barba
+        ctx.beginPath();
+        ctx.arc(45, 25, 8, 0, Math.PI);
+        ctx.fill();
+
+        ctx.fillStyle = '#EF4444'; // Cappello
+        ctx.beginPath();
+        ctx.moveTo(40, 15);
+        ctx.lineTo(55, 15);
+        ctx.lineTo(40, 0);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    function gameLoop() {
+        if (!isPlaying) return;
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // Disegna lo stato iniziale (menu background)
+    resize();
+    spawnHouse(300);
+    spawnHouse(600);
+    draw();
+
+</script>
+</body>
+</html>
