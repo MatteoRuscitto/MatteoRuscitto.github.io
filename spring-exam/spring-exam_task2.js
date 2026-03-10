@@ -14,9 +14,9 @@ for (let i=1;i<=12;i++){
     findName(i);
 }
 
-document.getElementById("book1").addEventListener("click",findOtherInfo(1));
-document.getElementById("book2").addEventListener("click",findOtherInfo(2));
-document.getElementById("book3").addEventListener("click",findOtherInfo(3));
+document.getElementById("book1").addEventListener("click",findOtherInfo);
+document.getElementById("book2").addEventListener("click",findOtherInfo);
+document.getElementById("book3").addEventListener("click",findOtherInfo);
 document.getElementById("book4").addEventListener("click",findOtherInfo(4));
 document.getElementById("book5").addEventListener("click",findOtherInfo(5));
 document.getElementById("book6").addEventListener("click",findOtherInfo(6));
@@ -26,6 +26,7 @@ document.getElementById("book9").addEventListener("click",findOtherInfo(9));
 document.getElementById("book10").addEventListener("click",findOtherInfo(10));
 document.getElementById("book11").addEventListener("click",findOtherInfo(11));
 document.getElementById("book12").addEventListener("click",findOtherInfo(12));
+
 
 
 async function findOtherInfo(n) {
