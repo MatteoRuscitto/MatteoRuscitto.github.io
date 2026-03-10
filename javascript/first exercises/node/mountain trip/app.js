@@ -31,3 +31,25 @@ app.listen(PORT, () => {
 
 // Middleware for å servere statiske filer fra "public" mappen
 app.use(express.static('public'));
+
+
+// Eksempel på en rute som henter alle brukernavnene til alle personene i databasen
+app.get('/api/personer_alle', (req, res) => {
+    const rows = db.prepare('SELECT brukernavn FROM person').all();
+    res.json(rows);
+});
+
+app.get('/api/fjellturer/:brukernavn', (req, res) => {
+    const brukernavn = req.params.brukernavn;
+    if (!brukernavn) return res.status(400).json({ error: 'Mangler brukernavn' });
+
+    const rows = db.prepare(`
+        SELECT fjell.fjellnavn
+        FROM person
+        JOIN fjelltur ON person.brukernavn = fjelltur.brukernavn
+        JOIN fjell ON fjelltur.fjell_id = fjell.fjell_id
+        WHERE person.brukernavn = ?
+    `).all(brukernavn);
+
+    res.json(rows);
+});
