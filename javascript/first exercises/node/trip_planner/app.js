@@ -1,24 +1,51 @@
-// Server-bit, setter opp en Express-app
+
 const express = require('express');
 const app = express();
 
 const PORT = 3000;
 
-// Databasen
+
 const Database = require('better-sqlite3');
 const db = new Database('trip_planner.db');
 
-// CORS-middleware for å tillate forespørsler fra andre domener
+
 const cors = require('cors');
 app.use(cors());
 
-// Eksempel på en rute som henter alle fjell, beskrivelse, høydene og bilde deres
-app.get('/api/fjell_info', (req, res) => {
-    const rows = db.prepare('SELECT fjellnavn, hoyde, beskrivelse, foto FROM fjell').all();
+app.get('/api/people_all', (req, res) => {
+    const rows = db.prepare('SELECT personID, name FROM person').all();
     res.json(rows);
 });
 
-// Åpner en viss port på serveren, og starter serveren
+
+app.get('/api/trips/:personID', (req, res) => {
+
+    const personID = req.params.personID;
+    if (!personID) return res.status(400).json({ error: 'no user found' });
+
+    const rows = db.prepare(`
+        SELECT 
+            continent.name AS continent,
+            country.name AS country,
+            trip.tripID,
+            trip.destination,
+            trip.description,
+            wants_to_go.date,
+            wants_to_go.have_been,
+            foto.file_name,
+            foto.title
+        FROM wants_to_go
+        JOIN trip ON wants_to_go.tripID = trip.tripID
+        JOIN country ON trip.countryID = country.countryID
+        JOIN continent ON country.continentID = continent.continentID
+        LEFT JOIN foto ON trip.tripID = foto.tripID
+        WHERE wants_to_go.personID = ?
+        ORDER BY continent.name, country.name;
+    `).all(personID);
+
+    res.json(rows);
+});
+
 app.listen(PORT, () => {
     console.log(`Server kjører på http://localhost:${PORT}`);
 });
