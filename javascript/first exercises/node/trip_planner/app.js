@@ -12,6 +12,9 @@ const db = new Database('trip_planner.db');
 const cors = require('cors');
 app.use(cors());
 
+// Middleware for å servere statiske filer fra "public" mappen
+app.use(express.static('public'));
+
 app.get('/api/people_all', (req, res) => {
     const rows = db.prepare('SELECT personID, name FROM person').all();
     res.json(rows);
@@ -48,4 +51,67 @@ app.get('/api/trips/:personID', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Server kjører på http://localhost:${PORT}`);
+});
+
+app.use(express.json());
+
+app.post('/api/add_trip', (req, res) => {
+
+    const {
+        personID,
+        destination,
+        description,
+        countryID,
+        date,
+        have_been
+    } = req.body;
+
+    if (!personID || !destination || !countryID) {
+
+        return res.status(400).json({
+            error: "missing fields"
+        });
+    }
+
+    const tripInsert = db.prepare(`
+        INSERT INTO trip
+        (destination, description, countryID)
+        VALUES (?, ?, ?)
+    `);
+
+    const result = tripInsert.run(
+        destination,
+        description,
+        countryID
+    );
+
+    const tripID = result.lastInsertRowid;
+
+    const relationInsert = db.prepare(`
+        INSERT INTO wants_to_go
+        (personID, tripID, date, have_been)
+        VALUES (?, ?, ?, ?)
+    `);
+
+    relationInsert.run(
+        personID,
+        tripID,
+        date,
+        have_been
+    );
+
+    res.json({
+        message: "Trip added successfully"
+    });
+});
+
+app.get('/api/countries', (req, res) => {
+
+    const rows = db.prepare(`
+        SELECT countryID, name
+        FROM country
+        ORDER BY name
+    `).all();
+
+    res.json(rows);
 });

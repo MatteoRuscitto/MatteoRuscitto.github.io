@@ -1,0 +1,27 @@
+body {
+
+    font-family: Arial;
+    margin: 30px;
+}
+
+.tripCard {
+
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 8px;
+
+    background: #f9f9f9;
+}
+
+h2 {
+
+    background: #dfefff;
+    padding: 8px;
+}
+
+h3 {
+
+    background: #eeeeee;
+    padding: 6px;
+}
