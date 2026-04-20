@@ -1,4 +1,5 @@
 
+//resources + start server
 const express = require('express');
 const app = express();
 
@@ -12,15 +13,21 @@ const db = new Database('trip_planner.db');
 const cors = require('cors');
 app.use(cors());
 
-// Middleware for å servere statiske filer fra "public" mappen
 app.use(express.static('public'));
 
+app.listen(PORT, () => {
+    console.log(`Server kjører på http://localhost:${PORT}`);
+});
+
+app.use(express.json());
+
+//fetch all the people to fill the dropdown menu
 app.get('/api/people_all', (req, res) => {
     const rows = db.prepare('SELECT personID, name FROM person').all();
     res.json(rows);
 });
 
-
+//fetch information about the trips of a chosen person
 app.get('/api/trips/:personID', (req, res) => {
 
     const personID = req.params.personID;
@@ -49,12 +56,7 @@ app.get('/api/trips/:personID', (req, res) => {
     res.json(rows);
 });
 
-app.listen(PORT, () => {
-    console.log(`Server kjører på http://localhost:${PORT}`);
-});
-
-app.use(express.json());
-
+//insert a trip into the database
 app.post('/api/add_trip', (req, res) => {
 
     const {
@@ -105,6 +107,7 @@ app.post('/api/add_trip', (req, res) => {
     });
 });
 
+// fetch the countries to fill the dropdown menu 
 app.get('/api/countries', (req, res) => {
 
     const rows = db.prepare(`

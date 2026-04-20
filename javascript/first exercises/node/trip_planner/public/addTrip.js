@@ -1,3 +1,4 @@
+// fetch all the people and fill the dropdown
 async function fetchPeople() {
 
     const response =
@@ -24,6 +25,7 @@ async function fetchPeople() {
 
 document.addEventListener("DOMContentLoaded",fetchPeople);
 
+// fetch all the countries and fill the dropdown
 async function loadCountries() {
 
     const response =
@@ -53,6 +55,7 @@ document.addEventListener(
     loadCountries
 );
 
+//get all the data about the trip to send
 async function addTrip() {
 
     const personID =

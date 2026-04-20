@@ -1,27 +1,134 @@
 body {
-
-    font-family: Arial;
-    margin: 30px;
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 0;
 }
 
-.tripCard {
+/* PAGE TITLE */
 
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin: 10px;
-    border-radius: 8px;
-
-    background: #f9f9f9;
+h1 {
+    text-align: center;
+    margin-top: 30px;
 }
 
-h2 {
+/* CONTAINER */
 
-    background: #dfefff;
+.container {
+    width: 80%;
+    margin: auto;
+}
+
+/* DROPDOWN */
+
+select {
     padding: 8px;
+    font-size: 16px;
+    margin: 20px 0;
 }
 
-h3 {
+/* CONTINENTS */
 
-    background: #eeeeee;
-    padding: 6px;
+.continent {
+    background-color: #2c3e50;
+    color: white;
+    padding: 12px;
+    margin-top: 20px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+/* COUNTRIES */
+
+.country {
+    background-color: #34495e;
+    color: white;
+    padding: 10px;
+    margin-left: 20px;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+/* TRIP CARDS */
+
+.trip {
+    background-color: white;
+    padding: 12px;
+    margin-left: 40px;
+    margin-top: 8px;
+    border-radius: 6px;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+}
+
+/* VISITED / PLANNED */
+
+.visited {
+    color: green;
+    font-weight: bold;
+}
+
+.planned {
+    color: orange;
+    font-weight: bold;
+}
+
+/* BUTTON */
+
+button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+/* FORM PAGE */
+
+form {
+    width: 400px;
+    margin: auto;
+    margin-top: 40px;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0px 3px 8px rgba(0,0,0,0.1);
+}
+
+
+/* LABELS */
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* INPUTS + SELECT + TEXTAREA */
+
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 18px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+}
+
+
+/* CHECKBOX ROW */
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
 }

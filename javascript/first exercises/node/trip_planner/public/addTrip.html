@@ -1,36 +1,41 @@
 <!DOCTYPE html>
 <html>
+    <head>
 
-<head>
+        <title>Add trip</title>
+        <link rel="stylesheet" href="style.css">
+        <script src="addTrip.js" defer></script>
 
-<title>Add trip</title>
+    </head>
 
-<script src="addTrip.js" defer></script>
+    <body>
 
-</head>
+        <h1>Add Trip</h1>
 
-<body>
+        <form id="tripForm">
 
-<h1>Add trip</h1>
+        <label>Person</label>
+            <select id="personDropdown"></select>
 
-<select id="personDropdown"></select>
+        <label>Country</label>
+            <select id="countryDropdown"></select>
 
-<input id="destination" placeholder="Destination">
+        <label>Destination</label>
+            <input type="text" id="destination">
 
-<input id="description" placeholder="Description">
+        <label>Description</label>
+            <textarea id="description"></textarea>
 
-<select id="countrySelect"></select>
+        <label>Date</label>
+            <input type="date" id="date">
 
-<input type="date" id="date">
+        <div class="checkbox-row">
+            <input type="checkbox" id="visited">
+            <label>Visited</label>
+        </div>
 
-<select id="status">
-    <option value="0">Wish 🌍</option>
-    <option value="1">Visited ✅</option>
-</select>
+        <button type="submit">Add Trip</button>
 
-<button onclick="addTrip()">
-Save trip
-</button>
-
-</body>
+        </form>
+    </body>
 </html>
